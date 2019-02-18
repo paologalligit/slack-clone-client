@@ -1,31 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ApolloClient, createNetworkInterface, ApolloProvider } from 'react-apollo';
+import { ApolloClient } from 'apollo-client';
+import { createHttpLink } from 'apollo-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { setContext } from 'apollo-link-context';
+import { ApolloLink } from 'apollo-link';
+import { ApolloProvider } from 'react-apollo';
 import 'semantic-ui-css/semantic.min.css';
 
 import Routes from './routes';
 import registerServiceWorker from './registerServiceWorker';
 
-const networkInterface = createNetworkInterface({
-  uri: 'http://localhost:8080/graphql',
-});
+const httpLink = createHttpLink({ uri: 'http://localhost:8080/graphql' });
 
-networkInterface.use([{
-  applyMiddleware(req, next) {
-    if (!req.options.headers) {
-      req.options.headers = {};
-    }
-
-    req.options.headers['x-token'] = localStorage.getItem('token');
-    req.options.headers['x-refresh-token'] = localStorage.getItem('refreshToken');
-
-    next();
+const middlewareLink = setContext(() => ({
+  headers: {
+    'x-token': localStorage.getItem('token'),
+    'x-refresh-token': localStorage.getItem('refreshToken'),
   },
-}]);
+}));
 
-networkInterface.useAfter([{
-  applyAfterware({ response: { headers } }, next) {
+const afterwareLink = new ApolloLink((operation, forward) => {
+  const { headers } = operation.getContext();
 
+  if (headers) {
     const token = headers.get('x-token');
     const refreshToken = headers.get('x-refresh-token');
 
@@ -35,18 +33,21 @@ networkInterface.useAfter([{
     if (refreshToken) {
       localStorage.setItem('refreshToken', refreshToken);
     }
+  }
 
-    next();
-  },
-}]);
+  return forward(operation);
+});
+
+const link = afterwareLink.concat(middlewareLink.concat(httpLink));
 
 const client = new ApolloClient({
-  networkInterface,
+  link,
+  cache: new InMemoryCache(),
 });
 
 const App = (
   <ApolloProvider client={client}>
-    <Routes/>
+    <Routes />
   </ApolloProvider>
 );
 

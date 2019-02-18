@@ -1,6 +1,7 @@
 import React from 'react';
-import {Message, Button, Input, Container, Header, Form} from 'semantic-ui-react';
-import {gql, graphql} from 'react-apollo';
+import { Message, Button, Input, Container, Header, Form } from 'semantic-ui-react';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
 class Register extends React.Component {
   state = {
@@ -19,18 +20,18 @@ class Register extends React.Component {
       passwordError: '',
     });
 
-    const {username, email, password} = this.state;
+    const { username, email, password } = this.state;
     const response = await this.props.mutate({
-      variables: {username, email, password},
+      variables: { username, email, password },
     });
 
-    const {ok, errors} = response.data.register;
+    const { ok, errors } = response.data.register;
 
     if (ok) {
       this.props.history.push('/');
     } else {
       const err = {};
-      errors.forEach(({path, message}) => {
+      errors.forEach(({ path, message }) => {
         // err['passwordError'] = 'too long..';
         err[`${path}Error`] = message;
       });
@@ -42,9 +43,9 @@ class Register extends React.Component {
   };
 
   onChange = (e) => {
-    const {name, value} = e.target;
+    const { name, value } = e.target;
     // name = "email";
-    this.setState({[name]: value});
+    this.setState({ [name]: value });
   };
 
   render() {
@@ -104,7 +105,7 @@ class Register extends React.Component {
           <Button onClick={this.onSubmit}>Submit</Button>
         </Form>
         {errorList.length ? (
-          <Message error header="There was some errors with your submission" list={errorList}/>
+          <Message error header="There was some errors with your submission" list={errorList} />
         ) : null}
       </Container>
     );

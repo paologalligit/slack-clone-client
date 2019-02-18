@@ -11,7 +11,6 @@ import ViewTeam from './ViewTeam';
 const isAuthenticated = () => {
   const token = localStorage.getItem('token');
   const refreshToken = localStorage.getItem('refreshToken');
-
   try {
     decode(token);
     decode(refreshToken);
@@ -29,9 +28,12 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
       (isAuthenticated() ? (
         <Component {...props} />
       ) : (
-        <Redirect to={{ pathname: '/login' }} />
-      ))
-    }
+        <Redirect
+          to={{
+            pathname: '/login',
+          }}
+        />
+      ))}
   />
 );
 
@@ -41,7 +43,7 @@ export default () => (
       <Route path="/" exact component={Home} />
       <Route path="/register" exact component={Register} />
       <Route path="/login" exact component={Login} />
-      <Route path="/view-team" exact component={ViewTeam} />
+      <Route path="/view-team/:teamId?/:channelId?" exact component={ViewTeam} />
       <PrivateRoute path="/create-team" exact component={CreateTeam} />
     </Switch>
   </BrowserRouter>
